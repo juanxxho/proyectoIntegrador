@@ -1,0 +1,343 @@
+services:
+
+  auth-service:
+    build: ./auth-service
+    ports:
+      - "3001:3001"
+    environment:
+      - JWT_SECRET=miclaveultrasecreta
+      - DB_HOST=auth-db
+      - DB_USER=root
+      - DB_PASSWORD=1234
+      - DB_DATABASE=auth_db
+    depends_on:
+      - auth-db
+    networks:
+      - microservices-network
+
+  auth-db:
+    image: mysql:8
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: auth_db
+    ports:
+      - "33061:3306"
+    volumes:
+      - auth-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - microservices-network
+
+  usuarios-service:
+    build: ./usuarios-service
+    ports:
+      - "3002:3002"
+    environment:
+      - JWT_SECRET=miclaveultrasecreta
+      - DB_HOST=usuarios-db
+      - DB_USER=root
+      - DB_PASSWORD=1234
+      - DB_DATABASE=users_db
+    depends_on:
+      - usuarios-db
+    networks:
+      - microservices-network
+
+  usuarios-db:
+    image: mysql:8
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: users_db
+    ports:
+      - "33062:3306"
+    volumes:
+      - usuarios-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - microservices-network
+
+  brigadas-service:
+    build: ./brigadas-service
+    ports:
+      - "3003:3003"
+    environment:
+      - JWT_SECRET=miclaveultrasecreta
+      - DB_HOST=brigadas-db
+      - DB_USER=root
+      - DB_PASSWORD=1234
+      - DB_DATABASE=brigadas_db
+    depends_on:
+      - brigadas-db
+    networks:
+      - microservices-network
+
+  brigadas-db:
+    image: mysql:8
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: brigadas_db
+    ports:
+      - "33063:3306"
+    volumes:
+      - brigadas-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - microservices-network
+
+  investigaciones-service:
+    build: ./investigaciones-service
+    ports:
+      - "3004:3004"
+    environment:
+      - JWT_SECRET=miclaveultrasecreta
+      - DB_HOST=investigaciones-db
+      - DB_USER=root
+      - DB_PASSWORD=1234
+      - DB_DATABASE=investigaciones_db
+    depends_on:
+      - investigaciones-db
+    networks:
+      - microservices-network
+
+  investigaciones-db:
+    image: mysql:8
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: investigaciones_db
+    ports:
+      - "33064:3306"
+    volumes:
+      - investigaciones-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - microservices-network
+
+  tareas-service:
+    build: ./tareas-service
+    ports:
+      - "3005:3005"
+    environment:
+      - JWT_SECRET=miclaveultrasecreta
+      - DB_HOST=tareas-db
+      - DB_USER=root
+      - DB_PASSWORD=1234
+      - DB_DATABASE=tareas_db
+    depends_on:
+      - tareas-db
+    networks:
+      - microservices-network
+
+  tareas-db:
+    image: mysql:8
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: tareas_db
+    ports:
+      - "33065:3306"
+    volumes:
+      - tareas-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - microservices-network
+
+  novedades-service:
+    build: ./novedades-service
+    ports:
+      - "3006:3006"
+    environment:
+      - JWT_SECRET=miclaveultrasecreta
+      - DB_HOST=novedades-db
+      - DB_USER=root
+      - DB_PASSWORD=1234
+      - DB_DATABASE=novedades_db
+    depends_on:
+      - novedades-db
+    networks:
+      - microservices-network
+
+  novedades-db:
+    image: mysql:8
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: novedades_db
+    ports:
+      - "33066:3306"
+    volumes:
+      - novedades-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - microservices-network
+
+  muestras-service:
+    build: ./muestras-service
+    ports:
+      - "3007:3007"
+    environment:
+      - JWT_SECRET=miclaveultrasecreta
+      - DB_HOST=muestras-db
+      - DB_USER=root
+      - DB_PASSWORD=1234
+      - DB_DATABASE=muestras_db
+    depends_on:
+      - muestras-db
+    networks:
+      - microservices-network
+
+  muestras-db:
+    image: mysql:8
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: muestras_db
+    ports:
+      - "33067:3306"
+    volumes:
+      - muestras-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - microservices-network
+
+  fotos-service:
+    build: ./fotos-service
+    ports:
+      - "3008:3008"
+    environment:
+      - JWT_SECRET=miclaveultrasecreta
+      - DB_HOST=fotos-db
+      - DB_USER=root
+      - DB_PASSWORD=1234
+      - DB_DATABASE=fotos_db
+    depends_on:
+      - fotos-db
+    networks:
+      - microservices-network
+
+  fotos-db:
+    image: mysql:8
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: fotos_db
+    ports:
+      - "33068:3306"
+    volumes:
+      - fotos-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - microservices-network
+
+  reportes-service:
+    build: ./reportes-service
+    ports:
+      - "3009:3009"
+    environment:
+      - JWT_SECRET=miclaveultrasecreta
+    networks:
+      - microservices-network
+
+  inventario-service:
+    build: ./inventario-service
+    ports:
+      - "3010:3010"
+    environment:
+      - JWT_SECRET=miclaveultrasecreta
+      - DB_HOST=inventario-db
+      - DB_USER=root
+      - DB_PASSWORD=1234
+      - DB_DATABASE=inventario_db
+    depends_on:
+      - inventario-db
+    networks:
+      - microservices-network
+
+  inventario-db:
+    image: mysql:8
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: inventario_db
+    ports:
+      - "33069:3306"
+    volumes:
+      - inventario-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - microservices-network
+
+  gateway:
+    build: ./gateway
+    ports:
+      - "80:80"
+    networks:
+      - microservices-network
+  expertos-db:
+    image: postgres:latest
+    container_name: expertos-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: supersecret
+      POSTGRES_DB: expertos
+    ports:
+      - '5432:5432'
+    networks:
+      - microservices-network
+    volumes:
+      - expertos-db-data:/var/lib/postgresql/data
+
+
+volumes:
+  auth-data:
+  usuarios-data:
+  brigadas-data:
+  investigaciones-data:
+  tareas-data:
+  novedades-data:
+  muestras-data:
+  fotos-data:
+  inventario-data:
+  expertos-db-data:
+
+networks:
+  microservices-network:
