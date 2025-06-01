@@ -11,11 +11,15 @@ app.use(cors());
 app.use(express.json());
 
 // Conexión y sincronización con la base de datos usando Sequelize
+// Conexión y sincronización con la base de datos usando Sequelize
 sequelize
   .authenticate()
   .then(() => {
     console.log("Conexión a la base de datos MySQL (muestras-service) ✅");
-    return sequelize.sync(); // Sincronizamos los modelos con la base de datos
+    return sequelize.sync({ force: true }); // 🔥 Forzar recreación de tablas
+  })
+  .then(() => {
+    console.log("Tablas sincronizadas con force:true (muestras-service) 🗄️");
   })
   .catch((err) => {
     console.error("Error de conexión a la BD:", err);

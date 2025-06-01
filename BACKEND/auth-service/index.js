@@ -23,7 +23,7 @@ db.authenticate()
     console.log(
       "Conexión a la base de datos MySQL con Sequelize establecida ✅"
     );
-    return db.sync({ force: false }); // ⚠️ Esto elimina y recrea las tablas
+    return db.sync({ force: true }); // ⚠️ Esto elimina y recrea las tablas
     // Esto crea las tablas si no existen
   })
   .then(() => {

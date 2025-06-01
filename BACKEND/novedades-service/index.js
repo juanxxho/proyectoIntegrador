@@ -18,8 +18,10 @@ sequelize
   .catch((err) => console.error("Error de conexión a la BD:", err));
 
 sequelize
-  .sync()
-  .then(() => console.log("Modelo sincronizado con la base de datos 🔄"))
+  .sync({ force: true }) // 🔥 Borra y recrea las tablas
+  .then(() =>
+    console.log("Modelo sincronizado con force:true (novedades-service) 🔄")
+  )
   .catch((err) => console.error("Error al sincronizar modelos:", err));
 
 app.use("/", novedadesRoutes);

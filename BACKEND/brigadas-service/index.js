@@ -12,7 +12,7 @@ app.use(cors());
 app.use(express.json());
 
 // Conexión y sincronización de la base de datos MySQL
-db.sync({ force: false }) // Cambié a `force: false` para no eliminar datos existentes
+db.sync({ force: true }) // Cambié a `force: false` para no eliminar datos existentes
   .then(() => console.log("Base de datos MySQL sincronizada ✅"))
   .catch((err) =>
     console.error("Error al sincronizar la base de datos MySQL:", err)

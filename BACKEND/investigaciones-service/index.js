@@ -18,7 +18,7 @@ db.authenticate()
     console.log("Conexión a la base de datos MySQL establecida ✅");
 
     // Aquí va el sync
-    return db.sync({ force: false }); // Cambia a false o alter más adelante
+    return db.sync({ force: true }); // Cambia a false o alter más adelante
   })
   .then(() => {
     console.log("Tablas sincronizadas con force: true 🧨✅");
