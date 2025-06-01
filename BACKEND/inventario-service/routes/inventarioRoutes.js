@@ -1,10 +1,11 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const inventarioController = require('../controllers/inventarioController');
+const inventarioController = require("../controllers/inventarioController");
 
-router.get('/', inventarioController.listarInventarios);
-router.post('/', inventarioController.crearInventario);
-router.put('/:id', inventarioController.actualizarInventario);
-router.delete('/:id', inventarioController.eliminarInventario);
+router.get("/", inventarioController.listarInventarios);
+router.post("/", inventarioController.crearInventario);
+router.post("/crear-multiple", inventarioController.crearInventarioMultiple);
+router.put("/:id", inventarioController.actualizarInventario);
+router.delete("/:id", inventarioController.eliminarInventario);
 
 module.exports = router;

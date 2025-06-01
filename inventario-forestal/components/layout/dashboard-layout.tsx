@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import { useState, type ReactNode } from "react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { useAuth } from "@/context/auth-context"
-import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { useState, type ReactNode } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useAuth } from "@/context/auth-context";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
   Leaf,
   ClipboardList,
@@ -19,9 +19,9 @@ import {
   User,
   BarChart,
   Bell,
-} from "lucide-react"
-import { cn } from "@/lib/utils"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,58 +29,65 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { ThemeToggle } from "@/components/theme-toggle"
+} from "@/components/ui/dropdown-menu";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 interface NavItem {
-  title: string
-  href: string
-  icon: ReactNode
-  roles: string[]
+  title: string;
+  href: string;
+  icon: ReactNode;
+  roles: string[];
 }
 
 interface DashboardLayoutProps {
-  children: ReactNode
+  children: React.ReactNode;
+  role: string;
+  userName: string;
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
-  const [open, setOpen] = useState(false)
-  const pathname = usePathname()
-  const { user, logout, hasRole } = useAuth()
+  const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+  const { user, logout, hasRole } = useAuth();
 
   // Determinar el rol para la ruta
-  const rolePath = user?.role ? getRolePath(user.role) : ""
-
+  const rolePath = user?.role ? getRolePath(user.role) : "";
   const navItems: NavItem[] = [
     {
       title: "Inicio",
       href: `/dashboard/${rolePath}`,
       icon: <Home className="h-5 w-5" />,
-      roles: ["administrador", "jefe_brigada", "botanico", "auxiliar", "coinvestigador"],
+      roles: [
+        "administrador",
+        "jefe de brigada",
+        "botanico",
+        "auxiliar",
+        "coinvestigador",
+      ],
     },
     {
       title: "Investigaciones",
       href: `/dashboard/${rolePath}/investigaciones`,
       icon: <ClipboardList className="h-5 w-5" />,
-      roles: ["administrador", "jefe_brigada", "botanico", "coinvestigador"],
+      roles: ["administrador"],
     },
     {
       title: "Brigadas",
       href: `/dashboard/${rolePath}/brigadas`,
       icon: <Users className="h-5 w-5" />,
-      roles: ["administrador", "jefe_brigada"],
+      roles: ["administrador"],
     },
     {
       title: "Tareas",
       href: `/dashboard/${rolePath}/tareas`,
       icon: <CheckSquare className="h-5 w-5" />,
-      roles: ["administrador", "jefe_brigada", "botanico", "auxiliar", "coinvestigador"],
+      roles: ["jefe de brigada", "auxiliar", "coinvestigador"],
     },
     {
       title: "Muestras",
       href: `/dashboard/${rolePath}/muestras`,
       icon: <Leaf className="h-5 w-5" />,
-      roles: ["administrador", "botanico"],
+      roles: ["botanico"],
     },
     {
       title: "Fotografías",
@@ -92,19 +99,19 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       title: "Novedades",
       href: `/dashboard/${rolePath}/novedades`,
       icon: <Bell className="h-5 w-5" />,
-      roles: ["administrador", "jefe_brigada", "botanico", "auxiliar", "coinvestigador"],
+      roles: ["jefe de brigada"],
     },
     {
       title: "Reportes",
       href: `/dashboard/${rolePath}/reportes`,
       icon: <BarChart className="h-5 w-5" />,
-      roles: ["administrador", "JEFE_BRIGADA"],
+      roles: ["administrador", "jefe de brigada"],
     },
     {
       title: "Inventario",
       href: `/dashboard/${rolePath}/inventario`,
       icon: <FileSpreadsheet className="h-5 w-5" />,
-      roles: ["administrador", "AUXILIAR_TECNICO"],
+      roles: ["administrador", "auxiliar"],
     },
     {
       title: "Usuarios",
@@ -112,43 +119,42 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       icon: <User className="h-5 w-5" />,
       roles: ["administrador"],
     },
-  ]
+  ];
 
   // Filtrar elementos de navegación según el rol del usuario
   const filteredNavItems = navItems.filter((item) => {
-    if (!user) return false
-    return item.roles.includes(user.role)
-  })
+    if (!user) return false;
+    return item.roles.includes(user.role);
+  });
 
   // Función auxiliar para obtener la ruta del dashboard según el rol
   function getRolePath(role: string) {
     switch (role) {
       case "administrador":
-        return "admin"
-      case "jefe_brigada":
-        return "jefe"
+        return "admin";
+      case "jefe de brigada":
+        return "jefe de brigada";
       case "botanico":
-        return "botanico"
+        return "botanico";
       case "auxiliar":
-        return "auxiliar"
+        return "auxiliar";
       case "coinvestigador":
-        return "coinvestigador"
+        return "coinvestigador";
       default:
-        return ""
+        return "";
     }
   }
 
   // Obtener el título del rol para mostrar
-  const roleTitle = user?.role
-    ? {
-        administrador: "Administrador",
-        jefe_brigada: "Jefe de Brigada",
-        botanico: "Botánico",
-        auxiliar: "Auxiliar Técnico",
-        coinvestigador: "Coinvestigador",
-      }[user.role]
-    : "Usuario"
+  const roleMap = {
+    administrador: "administrador",
+    "jefe de brigada": "Jefe de Brigada",
+    botanico: "Botánico",
+    auxiliar: "Auxiliar Técnico",
+    coinvestigador: "Coinvestigador",
+  } as const;
 
+  const roleTitle = roleMap[user?.role as keyof typeof roleMap] || "Usuario";
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
@@ -161,7 +167,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </SheetTrigger>
           <SheetContent side="left" className="w-72">
             <nav className="grid gap-2 text-lg font-medium">
-              <Link href="/" className="flex items-center gap-2 text-lg font-semibold" onClick={() => setOpen(false)}>
+              <Link
+                href="/"
+                className="flex items-center gap-2 text-lg font-semibold"
+                onClick={() => setOpen(false)}
+              >
                 <Leaf className="h-6 w-6 text-green-600" />
                 <span>Inventario Forestal</span>
               </Link>
@@ -173,7 +183,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   onClick={() => setOpen(false)}
                   className={cn(
                     "flex items-center gap-2 rounded-lg px-3 py-2 text-muted-foreground hover:text-foreground",
-                    pathname === item.href ? "bg-muted text-foreground" : "",
+                    pathname === item.href ? "bg-muted text-foreground" : ""
                   )}
                 >
                   {item.icon}
@@ -200,8 +210,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>
               <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium leading-none">{user?.name || "Usuario"}</p>
-                <p className="text-xs leading-none text-muted-foreground">{roleTitle}</p>
+                <p className="text-sm font-medium leading-none">
+                  {user?.name || "Usuario"}
+                </p>
+                <p className="text-xs leading-none text-muted-foreground">
+                  {roleTitle}
+                </p>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
@@ -228,7 +242,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 href={item.href}
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors",
-                  pathname === item.href ? "bg-muted text-foreground" : "",
+                  pathname === item.href ? "bg-muted text-foreground" : ""
                 )}
               >
                 {item.icon}
@@ -240,5 +254,5 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <main className="flex-1 p-4 md:p-6">{children}</main>
       </div>
     </div>
-  )
+  );
 }

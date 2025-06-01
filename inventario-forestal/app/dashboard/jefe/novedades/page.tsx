@@ -1,150 +1,165 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, useEffect } from "react"
-import { DashboardLayout } from "@/components/layout/dashboard-layout"
-import { AuthGuard } from "@/components/auth/auth-guard"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, Search, Filter, Loader2 } from "lucide-react"
-import Link from "next/link"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { useToast } from "@/components/ui/use-toast"
+import { useState, useEffect } from "react";
+import { DashboardLayout } from "@/components/layout/dashboard-layout";
+import AuthGuard from "@/components/auth/auth-guard";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Plus, Search, Loader2, Calendar, User } from "lucide-react";
+import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/components/ui/use-toast";
+import axiosInstance from "@/lib/axios";
+
+interface Novedad {
+  id: number;
+  titulo: string;
+  descripcion: string;
+  fecha: string;
+  brigada_id: number;
+}
 
 export default function JefeNovedadesPage() {
-  const [novedades, setNovedades] = useState([])
-  const [filteredNovedades, setFilteredNovedades] = useState([])
-  const [searchTerm, setSearchTerm] = useState("")
-  const [typeFilter, setTypeFilter] = useState("todos")
-  const [isLoading, setIsLoading] = useState(true)
-  const { toast } = useToast()
+  const [novedades, setNovedades] = useState<Novedad[]>([]);
+  const [filteredNovedades, setFilteredNovedades] = useState<Novedad[]>([]);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchNovedades = async () => {
       try {
-        setIsLoading(true)
+        setIsLoading(true);
 
-        // En una implementación real, esta sería una llamada a tu microservicio
-        // const response = await axios.get("/novedades/brigada")
-        // setNovedades(response.data)
+        // Obtener datos del usuario logueado
+        const userResponse = await axiosInstance.get("/auth/profile");
+        const jefeId: number = userResponse.data.id_ideam;
 
-        // Simulamos datos para la demostración
-        const data = [
-          {
-            id: "NOV-001",
-            titulo: "Condiciones climáticas adversas",
-            descripcion: "Lluvia intensa en el sector A que dificulta la recolección de muestras.",
-            autor: "Juan Pérez",
-            rol: "jefe_brigada",
-            fecha: "Hoy, 10:30",
-            tipo: "clima",
-            investigacion: "INV-2023-042",
-          },
-          {
-            id: "NOV-002",
-            titulo: "Especie no identificada encontrada",
-            descripcion: "Se encontró una especie que no coincide con el catálogo. Se requiere análisis adicional.",
-            autor: "María López",
-            rol: "botanico",
-            fecha: "Hoy, 09:15",
-            tipo: "hallazgo",
-            investigacion: "INV-2023-042",
-          },
-          {
-            id: "NOV-003",
-            titulo: "Problema con equipo GPS",
-            descripcion: "El GPS principal presenta fallas. Se está utilizando el equipo de respaldo.",
-            autor: "Pedro Gómez",
-            rol: "auxiliar",
-            fecha: "Ayer, 16:45",
-            tipo: "equipo",
-            investigacion: "INV-2023-042",
-          },
-        ]
+        // Obtener brigada asociada al jefe
+        const brigadaResponse = await axiosInstance.get(
+          `/brigadas/jefe/${jefeId}`
+        );
+        const brigada = brigadaResponse.data;
 
-        setNovedades(data)
-        setFilteredNovedades(data)
+        if (brigada && brigada.id) {
+          // Obtener novedades asociadas a la brigada
+          const novedadesResponse = await axiosInstance.get<Novedad[]>(
+            `/novedades/1`
+          );
+
+          setNovedades(novedadesResponse.data);
+          setFilteredNovedades(novedadesResponse.data);
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "No se encontró la brigada asociada al jefe.",
+          });
+          setNovedades([]);
+          setFilteredNovedades([]);
+        }
       } catch (error) {
-        console.error("Error al cargar novedades:", error)
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "No se pudieron cargar las novedades.",
-        })
-      } finally {
-        setIsLoading(false)
-      }
-    }
+        console.error("Error al cargar novedades:", error);
 
-    fetchNovedades()
-  }, [toast])
+        // Datos simulados mientras se arregla el backend
+        const data: Novedad[] = [
+          {
+            id: 1,
+            titulo: "Condiciones climáticas adversas",
+            descripcion:
+              "Lluvia intensa en el sector A que dificulta la recolección de muestras.",
+            fecha: "2024-01-15T10:30:00.000Z",
+            brigada_id: 1,
+          },
+          {
+            id: 2,
+            titulo: "Especie no identificada encontrada",
+            descripcion:
+              "Se encontró una especie que no coincide con el catálogo. Se requiere análisis adicional.",
+            fecha: "2024-01-15T09:15:00.000Z",
+            brigada_id: 1,
+          },
+          {
+            id: 3,
+            titulo: "Problema con equipo GPS",
+            descripcion:
+              "El GPS principal presenta fallas. Se está utilizando el equipo de respaldo.",
+            fecha: "2024-01-14T16:45:00.000Z",
+            brigada_id: 1,
+          },
+        ];
+
+        setNovedades(data);
+        setFilteredNovedades(data);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchNovedades();
+  }, [toast]);
 
   useEffect(() => {
-    // Filtrar novedades según los criterios de búsqueda y tipo
-    const filtered = novedades.filter((novedad: any) => {
-      const matchesSearch =
-        novedad.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        novedad.descripcion.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        novedad.autor.toLowerCase().includes(searchTerm.toLowerCase())
+    const filtered = novedades.filter((novedad) => {
+      const lowerSearch = searchTerm.toLowerCase();
+      return (
+        novedad.titulo.toLowerCase().includes(lowerSearch) ||
+        novedad.descripcion.toLowerCase().includes(lowerSearch)
+      );
+    });
 
-      const matchesType = typeFilter === "todos" || novedad.tipo === typeFilter
-
-      return matchesSearch && matchesType
-    })
-
-    setFilteredNovedades(filtered)
-  }, [searchTerm, typeFilter, novedades])
+    setFilteredNovedades(filtered);
+  }, [searchTerm, novedades]);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value)
-  }
+    setSearchTerm(e.target.value);
+  };
 
-  const handleTypeFilter = (value: string) => {
-    setTypeFilter(value)
-  }
-
-  const getTipoNovedad = (tipo: string) => {
-    switch (tipo) {
-      case "clima":
-        return { label: "Clima", color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300" }
-      case "hallazgo":
-        return { label: "Hallazgo", color: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300" }
-      case "equipo":
-        return { label: "Equipo", color: "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300" }
-      case "acceso":
-        return { label: "Acceso", color: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300" }
-      case "personal":
-        return { label: "Personal", color: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300" }
-      default:
-        return { label: "Otro", color: "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300" }
-    }
-  }
+  const formatFecha = (fecha: string) => {
+    const date = new Date(fecha);
+    return date.toLocaleDateString("es-CO", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
   if (isLoading) {
     return (
-      <AuthGuard allowedRoles={["jefe_brigada"]}>
+      <AuthGuard allowedRoles={["jefe de brigada"]}>
         <DashboardLayout>
           <div className="flex items-center justify-center min-h-[60vh]">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
         </DashboardLayout>
       </AuthGuard>
-    )
+    );
   }
 
   return (
-    <AuthGuard allowedRoles={["jefe_brigada"]}>
+    <AuthGuard allowedRoles={["jefe de brigada"]}>
       <DashboardLayout>
         <div className="flex flex-col gap-6">
           <div className="flex items-center justify-between">
-            <h1 className="text-3xl font-bold tracking-tight">Novedades</h1>
-            <Link href="/dashboard/jefe/novedades/crear">
-              <Button className="bg-green-700 hover:bg-green-800">
-                <Plus className="mr-2 h-4 w-4" /> Nueva Novedad
+            <h1 className="text-3xl font-bold tracking-tight">
+              Novedades de la Brigada
+            </h1>
+            <Link href="/dashboard/jefe/novedades/nueva" passHref>
+              <Button className="bg-green-700 hover:bg-green-800" asChild>
+                <a>
+                  <Plus className="mr-2 h-4 w-4" /> Nueva Novedad
+                </a>
               </Button>
             </Link>
           </div>
@@ -154,30 +169,12 @@ export default function JefeNovedadesPage() {
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 type="search"
-                placeholder="Buscar novedades..."
+                placeholder="Buscar novedades por título o descripción..."
                 className="pl-8"
                 value={searchTerm}
                 onChange={handleSearch}
+                aria-label="Buscar novedades"
               />
-            </div>
-            <div className="flex gap-2">
-              <Select value={typeFilter} onValueChange={handleTypeFilter}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todos">Todos los tipos</SelectItem>
-                  <SelectItem value="clima">Clima</SelectItem>
-                  <SelectItem value="hallazgo">Hallazgo</SelectItem>
-                  <SelectItem value="equipo">Equipo</SelectItem>
-                  <SelectItem value="acceso">Acceso</SelectItem>
-                  <SelectItem value="personal">Personal</SelectItem>
-                  <SelectItem value="otro">Otro</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button variant="outline" size="icon">
-                <Filter className="h-4 w-4" />
-              </Button>
             </div>
           </div>
 
@@ -185,33 +182,48 @@ export default function JefeNovedadesPage() {
             {filteredNovedades.length === 0 ? (
               <Card className="col-span-full">
                 <CardContent className="flex flex-col items-center justify-center p-6">
-                  <p className="text-muted-foreground mb-2">No se encontraron novedades</p>
-                  <p className="text-sm text-muted-foreground">Intenta con otros criterios de búsqueda</p>
+                  <p className="text-muted-foreground mb-2">
+                    No se encontraron novedades
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {searchTerm
+                      ? "Intenta con otros términos de búsqueda"
+                      : "Aún no hay novedades registradas"}
+                  </p>
                 </CardContent>
               </Card>
             ) : (
-              filteredNovedades.map((novedad: any) => (
-                <Card key={novedad.id}>
+              filteredNovedades.map((novedad) => (
+                <Card
+                  key={novedad.id}
+                  className="hover:shadow-md transition-shadow"
+                >
                   <CardHeader>
-                    <CardTitle className="flex items-center justify-between">
-                      {novedad.titulo}
-                      <Badge className={getTipoNovedad(novedad.tipo).color}>{getTipoNovedad(novedad.tipo).label}</Badge>
-                    </CardTitle>
-                    <CardDescription>
-                      <div className="flex items-center space-x-2">
-                        <Avatar className="h-6 w-6">
-                          <AvatarFallback>{novedad.autor.substring(0, 2)}</AvatarFallback>
-                        </Avatar>
-                        <span>{novedad.autor}</span>
-                      </div>
+                    <CardTitle className="text-lg">{novedad.titulo}</CardTitle>
+                    <CardDescription className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4" />
+                      {formatFecha(novedad.fecha)}
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <p>{novedad.descripcion}</p>
-                    <div className="mt-4 flex justify-between items-center">
-                      <span className="text-sm text-gray-500">{novedad.fecha}</span>
-                      <Link href={`/dashboard/jefe/novedades/${novedad.id}`}>
-                        <Button size="sm">Ver detalles</Button>
+                    <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
+                      {novedad.descripcion}
+                    </p>
+                    <div className="flex justify-between items-center">
+                      <Badge
+                        variant="secondary"
+                        className="flex items-center gap-1"
+                      >
+                        <User className="h-3 w-3" />
+                        Brigada #{novedad.brigada_id}
+                      </Badge>
+                      <Link
+                        href={`/dashboard/jefe/novedades/${novedad.id}`}
+                        passHref
+                      >
+                        <Button size="sm" variant="outline" asChild>
+                          <a>Ver detalles</a>
+                        </Button>
                       </Link>
                     </div>
                   </CardContent>
@@ -222,5 +234,5 @@ export default function JefeNovedadesPage() {
         </div>
       </DashboardLayout>
     </AuthGuard>
-  )
+  );
 }

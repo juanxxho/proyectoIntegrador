@@ -1,45 +1,60 @@
-"use client"
+"use client";
 
-import React, { useState, useEffect } from "react"
-import { DashboardLayout } from "@/components/layout/dashboard-layout"
-import  AuthGuard  from "@/components/auth/auth-guard"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Loader2, ArrowLeft } from 'lucide-react'
-import Link from "next/link"
-import { useToast } from "@/components/ui/use-toast"
-import { useRouter } from "next/navigation"
-import axiosInstance from "@/lib/axios"
+import type React from "react";
+import { useState, useEffect } from "react";
+import { DashboardLayout } from "@/components/layout/dashboard-layout";
+import AuthGuard from "@/components/auth/auth-guard";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Loader2, ArrowLeft, Plus, Trash } from "lucide-react";
+import Link from "next/link";
+import { useToast } from "@/components/ui/use-toast";
+import { useRouter } from "next/navigation";
+import axiosInstance from "@/lib/axios";
 
 // Definir interfaces para TypeScript
 interface Investigacion {
-  id: string | number
-  nombre: string
+  id: string | number;
+  nombre: string;
 }
 
-interface FormData {
-  investigacion_id: string
-  nombre_material: string
-  cantidad: string
-  observaciones: string
+interface Material {
+  id: number;
+  nombre_material: string;
+  cantidad: string;
+  observaciones: string;
 }
 
 export default function NuevoInventarioPage() {
-  const [formData, setFormData] = useState<FormData>({
-    investigacion_id: "",
-    nombre_material: "",
-    cantidad: "",
-    observaciones: "",
-  })
-  const [investigaciones, setInvestigaciones] = useState<Investigacion[]>([])
-  const [isLoading, setIsLoading] = useState<boolean>(false)
-  const [isLoadingInvestigaciones, setIsLoadingInvestigaciones] = useState<boolean>(true)
-  const { toast } = useToast()
-  const router = useRouter()
+  const [investigacionId, setInvestigacionId] = useState<string>("");
+  const [materiales, setMateriales] = useState<Material[]>([
+    {
+      id: 1,
+      nombre_material: "",
+      cantidad: "",
+      observaciones: "",
+    },
+  ]);
+  const [investigaciones, setInvestigaciones] = useState<Investigacion[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoadingInvestigaciones, setIsLoadingInvestigaciones] =
+    useState<boolean>(true);
+  const { toast } = useToast();
+  const router = useRouter();
 
   // Opciones predefinidas para materiales
   const materialesPreDefinidos = [
@@ -53,62 +68,115 @@ export default function NuevoInventarioPage() {
     { id: "radio", nombre: "Radio comunicador" },
     { id: "machete", nombre: "Machete" },
     { id: "bolsas", nombre: "Bolsas para muestras" },
-  ]
+    { id: "libreta", nombre: "Libreta de campo" },
+    { id: "lapiz", nombre: "Lápices" },
+    { id: "regla", nombre: "Regla" },
+    { id: "linterna", nombre: "Linterna" },
+    { id: "pilas", nombre: "Pilas" },
+  ];
 
   // Cargar investigaciones al iniciar
   useEffect(() => {
     const fetchInvestigaciones = async () => {
       try {
-        const response = await axiosInstance.get("/investigaciones")
-        setInvestigaciones(response.data)
+        const response = await axiosInstance.get("/investigaciones");
+        setInvestigaciones(response.data);
       } catch (error) {
-        console.error("Error al cargar investigaciones:", error)
+        console.error("Error al cargar investigaciones:", error);
         toast({
           variant: "destructive",
           title: "Error",
           description: "No se pudieron cargar las investigaciones.",
-        })
+        });
       } finally {
-        setIsLoadingInvestigaciones(false)
+        setIsLoadingInvestigaciones(false);
       }
-    }
+    };
 
-    fetchInvestigaciones()
-  }, [toast])
+    fetchInvestigaciones();
+  }, [toast]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
+  const handleMaterialChange = (id: number, field: string, value: string) => {
+    setMateriales((prevMateriales) =>
+      prevMateriales.map((material) =>
+        material.id === id ? { ...material, [field]: value } : material
+      )
+    );
+  };
 
-  const handleSelectChange = (name: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
+  const handleAddMaterial = () => {
+    const newId =
+      materiales.length > 0
+        ? Math.max(...materiales.map((material) => material.id)) + 1
+        : 1;
+    setMateriales([
+      ...materiales,
+      {
+        id: newId,
+        nombre_material: "",
+        cantidad: "",
+        observaciones: "",
+      },
+    ]);
+  };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-
-    try {
-      await axiosInstance.post("/inventarios", formData)
-
-      toast({
-        title: "Inventario creado",
-        description: "El material ha sido agregado al inventario exitosamente.",
-      })
-
-      router.push("/dashboard/admin/inventario")
-    } catch (error) {
-      console.error("Error al crear inventario:", error)
+  const handleRemoveMaterial = (id: number) => {
+    if (materiales.length > 1) {
+      setMateriales(materiales.filter((material) => material.id !== id));
+    } else {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "No se pudo crear el inventario. Intenta nuevamente.",
-      })
-    } finally {
-      setIsLoading(false)
+        description: "Debe haber al menos un material en el inventario.",
+      });
     }
-  }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      // Validar que todos los materiales tengan nombre y cantidad
+      const materialesIncompletos = materiales.filter(
+        (material) => !material.nombre_material.trim() || !material.cantidad
+      );
+
+      if (materialesIncompletos.length > 0) {
+        throw new Error("Todos los materiales deben tener nombre y cantidad");
+      }
+
+      // Preparar datos para enviar al backend
+      const datosInventario = {
+        investigacion_id: investigacionId || null,
+        materiales: materiales.map((material) => ({
+          nombre_material: material.nombre_material,
+          cantidad: material.cantidad,
+          observaciones: material.observaciones,
+        })),
+      };
+
+      await axiosInstance.post("/inventarios/crear-multiple", datosInventario);
+
+      toast({
+        title: "Inventario creado",
+        description: `Se han agregado ${materiales.length} materiales al inventario exitosamente.`,
+      });
+
+      router.push("/dashboard/admin/inventario");
+    } catch (error: any) {
+      console.error("Error al crear inventario:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description:
+          error.message ||
+          "No se pudo crear el inventario. Intenta nuevamente.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <AuthGuard allowedRoles={["administrador"]}>
@@ -121,109 +189,202 @@ export default function NuevoInventarioPage() {
                   <ArrowLeft className="h-4 w-4" />
                 </Button>
               </Link>
-              <h1 className="text-3xl font-bold tracking-tight">Nuevo Material de Inventario</h1>
+              <h1 className="text-3xl font-bold tracking-tight">
+                Nuevo Inventario
+              </h1>
             </div>
           </div>
 
           <Card>
             <CardHeader>
-              <CardTitle>Información del Material</CardTitle>
-              <CardDescription>Completa los datos para agregar un nuevo material al inventario</CardDescription>
+              <CardTitle>Información del Inventario</CardTitle>
+              <CardDescription>
+                Agrega múltiples materiales al inventario. Todos los materiales
+                se asociarán con la misma investigación.
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="investigacion_id">Investigación</Label>
-                    <Select 
-                      value={formData.investigacion_id} 
-                      onValueChange={(value) => handleSelectChange("investigacion_id", value)}
-                      disabled={isLoadingInvestigaciones}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder={isLoadingInvestigaciones ? "Cargando..." : "Selecciona una investigación"} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {investigaciones.map((inv) => (
-                          <SelectItem key={inv.id} value={String(inv.id)}>
-                            {inv.nombre}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <p className="text-sm text-muted-foreground">Investigación a la que se asignará este material</p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="nombre_material">Nombre del Material</Label>
-                    <Select
-                      value={formData.nombre_material}
-                      onValueChange={(value) => handleSelectChange("nombre_material", value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecciona un material" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {materialesPreDefinidos.map((material) => (
-                          <SelectItem key={material.id} value={material.nombre}>
-                            {material.nombre}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="cantidad">Cantidad</Label>
-                    <Select
-                      value={formData.cantidad}
-                      onValueChange={(value) => handleSelectChange("cantidad", value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecciona una cantidad" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {[1, 2, 3, 4, 5, 10, 15, 20, 25, 30].map((num) => (
-                          <SelectItem key={num} value={String(num)}>
-                            {num}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
                 <div className="space-y-2">
-                  <Label htmlFor="observaciones">Observaciones</Label>
+                  <Label htmlFor="investigacion_id">Investigación</Label>
                   <Select
-                    value={formData.observaciones}
-                    onValueChange={(value) => handleSelectChange("observaciones", value)}
+                    value={investigacionId}
+                    onValueChange={setInvestigacionId}
+                    disabled={isLoadingInvestigaciones}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Selecciona el estado del material" />
+                      <SelectValue
+                        placeholder={
+                          isLoadingInvestigaciones
+                            ? "Cargando..."
+                            : "Selecciona una investigación"
+                        }
+                      />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Nuevo">Nuevo</SelectItem>
-                      <SelectItem value="Buen estado">Buen estado</SelectItem>
-                      <SelectItem value="Regular">Regular</SelectItem>
-                      <SelectItem value="Requiere mantenimiento">Requiere mantenimiento</SelectItem>
+                      {investigaciones.map((inv) => (
+                        <SelectItem key={inv.id} value={String(inv.id)}>
+                          {inv.nombre}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
+                  <p className="text-sm text-muted-foreground">
+                    Investigación a la que se asignarán todos los materiales
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-medium">
+                      Materiales del Inventario
+                    </h3>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleAddMaterial}
+                    >
+                      <Plus className="mr-2 h-4 w-4" /> Agregar Material
+                    </Button>
+                  </div>
+
+                  <div className="space-y-4">
+                    {materiales.map((material) => (
+                      <div
+                        key={material.id}
+                        className="grid grid-cols-1 gap-4 border p-4 rounded-md"
+                      >
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor={`material-${material.id}-nombre`}>
+                              Nombre del Material *
+                            </Label>
+                            <Select
+                              value={material.nombre_material}
+                              onValueChange={(value) =>
+                                handleMaterialChange(
+                                  material.id,
+                                  "nombre_material",
+                                  value
+                                )
+                              }
+                            >
+                              <SelectTrigger
+                                id={`material-${material.id}-nombre`}
+                              >
+                                <SelectValue placeholder="Selecciona un material" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {materialesPreDefinidos.map((mat) => (
+                                  <SelectItem key={mat.id} value={mat.nombre}>
+                                    {mat.nombre}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor={`material-${material.id}-cantidad`}>
+                              Cantidad *
+                            </Label>
+                            <Select
+                              value={material.cantidad}
+                              onValueChange={(value) =>
+                                handleMaterialChange(
+                                  material.id,
+                                  "cantidad",
+                                  value
+                                )
+                              }
+                            >
+                              <SelectTrigger
+                                id={`material-${material.id}-cantidad`}
+                              >
+                                <SelectValue placeholder="Selecciona cantidad" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {[
+                                  1, 2, 3, 4, 5, 10, 15, 20, 25, 30, 50, 100,
+                                ].map((num) => (
+                                  <SelectItem key={num} value={String(num)}>
+                                    {num}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label
+                              htmlFor={`material-${material.id}-observaciones`}
+                            >
+                              Estado
+                            </Label>
+                            <Select
+                              value={material.observaciones}
+                              onValueChange={(value) =>
+                                handleMaterialChange(
+                                  material.id,
+                                  "observaciones",
+                                  value
+                                )
+                              }
+                            >
+                              <SelectTrigger
+                                id={`material-${material.id}-observaciones`}
+                              >
+                                <SelectValue placeholder="Selecciona estado" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Nuevo">Nuevo</SelectItem>
+                                <SelectItem value="Buen estado">
+                                  Buen estado
+                                </SelectItem>
+                                <SelectItem value="Regular">Regular</SelectItem>
+                                <SelectItem value="Requiere mantenimiento">
+                                  Requiere mantenimiento
+                                </SelectItem>
+                                <SelectItem value="Dañado">Dañado</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+
+                        <div className="flex justify-end">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleRemoveMaterial(material.id)}
+                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Trash className="mr-2 h-4 w-4" /> Eliminar material
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 <div className="flex justify-end gap-2">
                   <Link href="/dashboard/admin/inventario">
                     <Button variant="outline">Cancelar</Button>
                   </Link>
-                  <Button type="submit" className="bg-green-700 hover:bg-green-800" disabled={isLoading}>
+                  <Button
+                    type="submit"
+                    className="bg-green-700 hover:bg-green-800"
+                    disabled={isLoading}
+                  >
                     {isLoading ? (
                       <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creando...
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
+                        Creando...
                       </>
                     ) : (
-                      "Agregar Material"
+                      `Crear ${materiales.length} ${
+                        materiales.length === 1 ? "material" : "materiales"
+                      }`
                     )}
                   </Button>
                 </div>
@@ -233,5 +394,5 @@ export default function NuevoInventarioPage() {
         </div>
       </DashboardLayout>
     </AuthGuard>
-  )
+  );
 }
