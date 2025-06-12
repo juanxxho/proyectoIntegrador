@@ -4,7 +4,7 @@ import type React from "react";
 
 import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
-import { AuthGuard } from "@/components/auth/auth-guard";
+import AuthGuard from "@/components/auth/auth-guard";
 import {
   Card,
   CardContent,

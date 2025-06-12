@@ -28,12 +28,9 @@ const createBrigada = async (req, res) => {
   });
 
   if (expertosExistentes.length !== 4) {
-    return res
-      .status(400)
-      .json({
-        message:
-          "Uno o más expertos no existen en la base de datos de expertos.",
-      });
+    return res.status(400).json({
+      message: "Uno o más expertos no existen en la base de datos de expertos.",
+    });
   }
 
   // 2. Validar que cada experto tenga el rol correcto
@@ -71,12 +68,10 @@ const createBrigada = async (req, res) => {
     );
 
     await t.commit();
-    res
-      .status(201)
-      .json({
-        message: "Brigada creada correctamente.",
-        brigadaId: brigada.id,
-      });
+    res.status(201).json({
+      message: "Brigada creada correctamente.",
+      brigadaId: brigada.id,
+    });
   } catch (error) {
     await t.rollback();
     console.error("Error al crear brigada:", error);
@@ -164,9 +159,46 @@ const updateBrigadaEstado = async (req, res) => {
   }
 };
 
+const getMiembrosBrigada = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const brigada = await Brigada.findByPk(id);
+    if (!brigada) {
+      return res.status(404).json({ message: "Brigada no encontrada." });
+    }
+
+    const { jefe_brigada_id, botanico_id, auxiliar_id, coinvestigador_id } =
+      brigada;
+
+    // Consultar detalles de cada experto
+    const [jefe, botanico, auxiliar, coinvestigador] = await Promise.all([
+      Expertos.findByPk(jefe_brigada_id, {
+        attributes: ["id", "nombre", "rol"],
+      }),
+      Expertos.findByPk(botanico_id, { attributes: ["id", "nombre", "rol"] }),
+      Expertos.findByPk(auxiliar_id, { attributes: ["id", "nombre", "rol"] }),
+      Expertos.findByPk(coinvestigador_id, {
+        attributes: ["id", "nombre", "rol"],
+      }),
+    ]);
+
+    return res.status(200).json({
+      jefe,
+      botanico,
+      auxiliar,
+      coinvestigador,
+    });
+  } catch (error) {
+    console.error("Error al obtener miembros de brigada:", error);
+    return res.status(500).json({ message: "Error del servidor." });
+  }
+};
+
 module.exports = {
   createBrigada,
   getAllBrigadas,
   getBrigadaById,
   updateBrigadaEstado,
+  getMiembrosBrigada,
 };

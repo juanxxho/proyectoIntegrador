@@ -74,12 +74,10 @@ export default function JefeNuevaTareaPage() {
         const brigadas = brigadasResponse.data;
 
         const miBrigada = brigadas.find(
-          (brigada) => brigada.jefe_brigada_id === userData.user.id_ideam
+          (brigada: { jefe_brigada_id: any }) =>
+            brigada.jefe_brigada_id === userData.user.id_ideam
         );
-
         if (miBrigada) {
-          console.log("Brigada encontrada:", miBrigada);
-
           let idInvestigacion = miBrigada.id_investigacion;
 
           if (!idInvestigacion && miBrigada.id) {
@@ -91,11 +89,8 @@ export default function JefeNuevaTareaPage() {
                 }
               );
               idInvestigacion = investigacionResponse.data?.id || null;
-            } catch (fetchError) {
-              console.warn(
-                "No se pudo obtener id_investigacion desde API:",
-                fetchError
-              );
+            } catch {
+              // No pasa nada si falla aquí
             }
           }
 
@@ -110,7 +105,19 @@ export default function JefeNuevaTareaPage() {
               headers: { Authorization: `Bearer ${token}` },
             }
           );
-          setMiembrosBrigada(miembrosResponse.data);
+
+          // Aquí el backend responde un objeto con propiedades: jefe, botanico, auxiliar, coinvestigador
+          const miembrosObj = miembrosResponse.data;
+
+          // Convertimos ese objeto en un array para el Select
+          const miembrosArray: MiembroBrigada[] = Object.values(
+            miembrosObj
+          ).filter(
+            (miembro): miembro is MiembroBrigada =>
+              miembro !== null && miembro !== undefined
+          );
+
+          setMiembrosBrigada(miembrosArray);
         }
       } catch (error) {
         console.error("Error cargando miembros de brigada:", error);
@@ -159,7 +166,6 @@ export default function JefeNuevaTareaPage() {
         id_investigacion: formData.id_investigacion,
       };
 
-      console.log("Datos a enviar:", dataToSend);
       await axiosInstance.post("/tareas/crear", dataToSend);
 
       toast({
@@ -269,14 +275,9 @@ export default function JefeNuevaTareaPage() {
                       ))}
                     </SelectContent>
                   </Select>
-                  {miembrosBrigada.length === 0 && (
-                    <p className="text-sm text-red-600 mt-1">
-                      No hay miembros disponibles en tu brigada.
-                    </p>
-                  )}
                 </div>
 
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="fecha_inicio">Fecha de Inicio</Label>
                     <Popover>
@@ -284,7 +285,7 @@ export default function JefeNuevaTareaPage() {
                         <Button
                           variant={"outline"}
                           className={cn(
-                            "w-full justify-start text-left font-normal",
+                            "w-full pl-3 text-left font-normal",
                             !formData.fecha_inicio && "text-muted-foreground"
                           )}
                         >
@@ -293,10 +294,10 @@ export default function JefeNuevaTareaPage() {
                             ? format(formData.fecha_inicio, "PPP", {
                                 locale: es,
                               })
-                            : "Selecciona fecha de inicio"}
+                            : "Selecciona una fecha"}
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
+                      <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
                           mode="single"
                           selected={formData.fecha_inicio}
@@ -316,7 +317,7 @@ export default function JefeNuevaTareaPage() {
                         <Button
                           variant={"outline"}
                           className={cn(
-                            "w-full justify-start text-left font-normal",
+                            "w-full pl-3 text-left font-normal",
                             !formData.fecha_fin && "text-muted-foreground"
                           )}
                         >
@@ -325,10 +326,10 @@ export default function JefeNuevaTareaPage() {
                             ? format(formData.fecha_fin, "PPP", {
                                 locale: es,
                               })
-                            : "Selecciona fecha de fin"}
+                            : "Selecciona una fecha"}
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
+                      <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
                           mode="single"
                           selected={formData.fecha_fin}
@@ -342,18 +343,16 @@ export default function JefeNuevaTareaPage() {
                   </div>
                 </div>
 
-                <div>
-                  <Button type="submit" disabled={isLoading} className="w-full">
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Asignando...
-                      </>
-                    ) : (
-                      "Asignar Tarea"
-                    )}
-                  </Button>
-                </div>
+                <Button type="submit" disabled={isLoading} className="w-full">
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Guardando...
+                    </>
+                  ) : (
+                    "Asignar Tarea"
+                  )}
+                </Button>
               </form>
             </CardContent>
           </Card>

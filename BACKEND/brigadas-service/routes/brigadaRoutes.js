@@ -35,4 +35,6 @@ router.get(
 // Obtener experto por correo — usado por auth para validar
 router.get("/experto/correo/:email", expertoController.obtenerExpertoPorCorreo);
 
+router.get("/miembros/:id", verifyToken, brigadaController.getMiembrosBrigada);
+
 module.exports = router;
